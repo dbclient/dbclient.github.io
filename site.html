@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB CLIENT | Private Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Rajdhani:wght@600;700&family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #000000;
+            --accent-cyan: #00f2ff;
+            --accent-purple: #9d00ff;
+            --accent-red: #ff4444;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --sidebar-width: 260px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body { width: 100%; height: 100%; background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+
+        /* Background Glows */
+        .bg-glow { position: fixed; width: 450px; height: 450px; z-index: -1; filter: blur(100px); opacity: 0.15; pointer-events: none; }
+
+        /* Sidebar Navigation */
+        aside {
+            position: fixed; left: 0; top: 0; width: var(--sidebar-width); height: 100%;
+            background: rgba(5, 5, 5, 0.98); border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; padding: 40px 25px; z-index: 1000;
+        }
+
+        .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 60px; }
+        .brand img { width: 45px; height: 45px; border-radius: 50%; border: 1px solid var(--accent-cyan); }
+        .brand span { font-family: 'Rajdhani'; font-weight: bold; font-size: 1.6rem; letter-spacing: 1.5px; }
+
+        .nav-btn {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            color: #555; padding: 18px; border-radius: 14px; margin-bottom: 20px;
+            text-align: left; cursor: pointer; transition: 0.4s;
+            font-family: 'Rajdhani'; font-size: 1.2rem; text-transform: uppercase;
+        }
+        .nav-btn:hover { border-color: var(--accent-cyan); color: #fff; background: rgba(0, 242, 255, 0.05); }
+        .nav-btn.active { background: var(--accent-purple); color: #fff; border: none; box-shadow: 0 0 25px rgba(157, 0, 255, 0.3); }
+
+        /* Main Viewport */
+        main {
+            margin-left: var(--sidebar-width); height: 100%; width: calc(100% - var(--sidebar-width));
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+
+        .page {
+            position: absolute; width: 90%; height: 90%;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        .page.active { display: flex; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- HOME --- */
+        .hero-title { font-family: 'Rajdhani'; font-size: clamp(3rem, 7vw, 6rem); color: #fff; }
+        .hero-sub { color: #333; font-weight: bold; letter-spacing: 4px; margin-top: 5px; }
+
+        /* --- ABOUT (CREATORS) --- */
+        .glowing-creators {
+            background: rgba(157, 0, 255, 0.15); color: var(--accent-purple);
+            padding: 10px 30px; border-radius: 50px; border: 1px solid var(--accent-purple);
+            font-family: 'Rajdhani'; font-weight: bold; font-size: 1rem;
+            text-transform: uppercase; margin-bottom: 50px;
+            box-shadow: 0 0 30px rgba(157, 0, 255, 0.2);
+        }
+
+        .character-row { display: flex; gap: 80px; align-items: flex-end; justify-content: center; }
+        .char-box { text-align: center; }
+        .char-box img { height: 55vh; filter: drop-shadow(0 0 20px rgba(0,0,0,0.6)); transition: 0.3s; }
+        .char-box:hover img { transform: translateY(-10px); }
+        
+        .mc-name {
+            font-family: 'VT323', monospace; font-size: 2.5rem; margin-bottom: 12px;
+            background: rgba(0,0,0,0.85); padding: 4px 20px; border-radius: 6px;
+        }
+        .role-label { display: block; font-family: 'Inter'; font-size: 0.75rem; color: #444; font-weight: bold; text-transform: uppercase; margin-top: 8px; }
+
+        /* --- INFORMATION --- */
+        .info-card {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            padding: 45px; border-radius: 28px; width: 100%; max-width: 650px;
+        }
+        .info-item {
+            display: flex; justify-content: space-between; padding: 20px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .info-item:last-child { border: none; }
+        .info-label { color: #444; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; }
+        .info-value { color: var(--accent-cyan); font-family: 'Rajdhani'; font-weight: bold; font-size: 1.1rem; }
+
+        /* --- LEAKED --- */
+        .leak-status { text-align: center; color: var(--accent-red); }
+        .leak-status h2 { font-size: 3.5rem; margin-bottom: 10px; font-family: 'Rajdhani'; }
+        .leak-status p { color: #333; font-weight: bold; }
+
+        /* Mobile Optimization */
+        @media (max-width: 900px) {
+            aside { width: 85px; padding: 25px 12px; }
+            .brand span, .nav-btn span { display: none; }
+            main { margin-left: 85px; width: calc(100% - 85px); }
+            .character-row { gap: 30px; }
+            .char-box img { height: 40vh; }
+            .mc-name { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-glow" style="top: 10%; right: 10%; background: radial-gradient(circle, var(--accent-cyan), transparent 70%);"></div>
+    <div class="bg-glow" style="bottom: 10%; left: 10%; background: radial-gradient(circle, var(--accent-purple), transparent 70%);"></div>
+
+    <aside>
+        <div class="brand">
+            <img src="logo.png" alt="DB Logo">
+            <span>DB CLIENT</span>
+        </div>
+        <button id="btn-home" class="nav-btn active" onclick="showPage('home')"><span>Home</span></button>
+        <button id="btn-about" class="nav-btn" onclick="showPage('about')"><span>About</span></button>
+        <button id="btn-info" class="nav-btn" onclick="showPage('info')"><span>Information</span></button>
+        <button id="btn-leaked" class="nav-btn" onclick="showPage('leaked')"><span style="color:var(--accent-red)">Leaked</span></button>
+    </aside>
+
+    <main>
+        <div id="home" class="page active">
+            <h1 class="hero-title">DB CLIENT</h1>
+            <p class="hero-sub">PRIVATE 1.21 ADVANTAGE</p>
+        </div>
+
+        <div id="about" class="page">
+            <div class="glowing-creators">Creators</div>
+            <div class="character-row">
+                <div class="char-box">
+                    <div class="mc-name" style="color: var(--accent-purple);">BloodRift_</div>
+                    <img src="blood.png" alt="BloodRift_">
+                    <span class="role-label">Lead Developer</span>
+                </div>
+                <div class="char-box">
+                    <div class="mc-name" style="color: var(--accent-cyan);">Turbo</div>
+                    <img src="turbo.png" alt="Turbo">
+                    <span class="role-label">Owner</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="info" class="page">
+            <div class="info-card">
+                <h2 style="margin-bottom: 25px; font-family: 'Rajdhani'; letter-spacing: 2px;">TECHNICAL SPECS</h2>
+                <div class="info-item">
+                    <span class="info-label">Modules</span>
+                    <span class="info-value">20+ Bypassed</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Version</span>
+                    <span class="info-value">1.21 Minecraft</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Loader</span>
+                    <span class="info-value">Fabric Framework</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Architecture</span>
+                    <span class="info-value">Non-Injectable / Normal</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Core</span>
+                    <span class="info-value">Special Loader Jar</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="leaked" class="page">
+            <div class="leak-status">
+                <h2>NO LEAKED VERSION</h2>
+                <p>Status: Secure. All public builds are fake/malware.</p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showPage(pageId) {
+            // Clear current active state
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+
+            // Set new active state
+            document.getElementById(pageId).classList.add('active');
+            document.getElementById('btn-' + pageId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
